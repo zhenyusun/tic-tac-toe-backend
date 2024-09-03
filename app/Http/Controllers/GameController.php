@@ -153,6 +153,20 @@ class GameController extends Controller
      */
     private function makeComputerMove(&$board)
     {
+        // Computer: Try to win
+        if ($this->makeStrategicMove($board, 'o')) {
+            session(['board' => $board]);
+            session(['currentTurn' => 'x']);
+            return;
+        }
+
+        // Computer: Block opponent from winning
+        if ($this->makeStrategicMove($board, 'x')) {
+            session(['board' => $board]);
+            session(['currentTurn' => 'x']);
+            return;
+        }
+
         foreach ($board as $x => $row) {
             foreach ($row as $y => $cell) {
                 if ($cell === '') {
@@ -163,5 +177,48 @@ class GameController extends Controller
                 }
             }
         }
+    }
+
+    /**
+     * Makes a strategic move for the computer player by checking for winning or blocking opportunities.
+     *
+     * @param array &$board The current game board, passed by reference.
+     * @param string $piece The piece to check for ('x' or 'o').
+     *
+     * @return bool Returns true if a strategic move was made, false otherwise.
+     */
+    private function makeStrategicMove(&$board, $piece)
+    {
+        // Check rows, columns, and diagonals for a winning or blocking move
+        $winningCombinations = [
+            [[0, 0], [0, 1], [0, 2]],
+            [[1, 0], [1, 1], [1, 2]],
+            [[2, 0], [2, 1], [2, 2]],
+            [[0, 0], [1, 0], [2, 0]],
+            [[0, 1], [1, 1], [2, 1]],
+            [[0, 2], [1, 2], [2, 2]],
+            [[0, 0], [1, 1], [2, 2]],
+            [[0, 2], [1, 1], [2, 0]]
+        ];
+
+        foreach ($winningCombinations as $combination) {
+            $values = [
+                $board[$combination[0][0]][$combination[0][1]],
+                $board[$combination[1][0]][$combination[1][1]],
+                $board[$combination[2][0]][$combination[2][1]],
+            ];
+
+            if (count(array_filter($values, fn($val) => $val === $piece)) == 2 &&
+                count(array_filter($values, fn($val) => $val === '')) == 1) {
+                foreach ($combination as $index) {
+                    if ($board[$index[0]][$index[1]] === '') {
+                        $board[$index[0]][$index[1]] = 'o';
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 }
