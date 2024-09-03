@@ -30,11 +30,15 @@ A simple Tic-Tac-Toe game built with React for the frontend and Laravel for the 
     ```bash
     npm install
     ```
-3. Build the frontend:
+3. Open the .env file in the root of the frontend directory and add the API URL
+    ```bash
+    REACT_APP_API_URL=http://your-domain-or-ip/tic-tac-toe/api/game
+    ```
+4. Build the frontend:
     ```bash
     npm run build
     ```
-4. Serve the frontend using Apache or another server.
+5. Serve the frontend using Apache or another server.
 
 ## Usage
 1. Access the game at `http://your-domain/tic-tac-toe/`.
@@ -56,6 +60,16 @@ A simple Tic-Tac-Toe game built with React for the frontend and Laravel for the 
 - **DELETE /api/game**  
   Resets the board and scores.
 
+## Testing
+1. Navigate to the backend directory:
+```bash
+cd tic-tac-toe-backend
+```
+2. Run the tests:
+```bash
+vendor/bin/phpunit
+```
+
 ## Technologies Used
 - **React**: Frontend framework
 - **Laravel**: Backend framework
@@ -64,6 +78,3 @@ A simple Tic-Tac-Toe game built with React for the frontend and Laravel for the 
 ## Future Enhancements
 - Implement unit tests for backend logic.
 - Make the domain/IP address dynamic in `App.js` for easier deployment across environments.
-
-## License
-This project is licensed under the MIT License.
