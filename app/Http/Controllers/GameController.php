@@ -47,14 +47,12 @@ class GameController extends Controller
         $board = session('board');
         $currentTurn = session('currentTurn');
 
-        Log::info('Before move:', ['currentTurn' => $currentTurn, 'piece' => $piece, 'board' => $board]);
+        if (!isset($board[$x][$y]) || $board[$x][$y] !== '') {
+            return response()->json(['error' => 'Position already taken'], 409);
+        }
 
         if ($piece !== $currentTurn) {
             return response()->json(['error' => 'Not your turn'], 406);
-        }
-
-        if (!isset($board[$x][$y]) || $board[$x][$y] !== '') {
-            return response()->json(['error' => 'Position already taken'], 409);
         }
 
         $board[$x][$y] = $piece;
@@ -65,9 +63,15 @@ class GameController extends Controller
             session(['score.' . $piece => session('score.' . $piece) + 1]);
         } else {
             session(['currentTurn' => $piece === 'x' ? 'o' : 'x']);
+            if ($piece === 'x') {
+                $this->makeComputerMove($board);
+                // Check if the computer won after its move
+                if ($this->checkVictory($board, 'o')) {
+                    session(['victory' => 'o']);
+                    session(['score.o' => session('score.o') + 1]);
+                }
+            }
         }
-
-        Log::info('After move:', ['currentTurn' => session('currentTurn'), 'board' => $board]);
 
         return $this->getGameState();
     }
@@ -79,13 +83,12 @@ class GameController extends Controller
      */
     public function restartGame()
     {
-        $victory = session('victory', '');
         $board = array_fill(0, 3, array_fill(0, 3, ''));
 
         session(['board' => $board]);
         session(['victory' => '']);
-        session(['currentTurn' => $victory === 'x' ? 'o' : 'x']);
-        
+        session(['currentTurn' => 'x']);
+
         if (!session()->has('score')) {
             session(['score' => ['x' => 0, 'o' => 0]]);
         }
@@ -139,5 +142,26 @@ class GameController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Makes a move for the computer player by placing an 'o' in the first empty cell found.
+     *
+     * @param array &$board The current game board, passed by reference.
+     *
+     * @return void
+     */
+    private function makeComputerMove(&$board)
+    {
+        foreach ($board as $x => $row) {
+            foreach ($row as $y => $cell) {
+                if ($cell === '') {
+                    $board[$x][$y] = 'o';
+                    session(['board' => $board]);
+                    session(['currentTurn' => 'x']);
+                    return;
+                }
+            }
+        }
     }
 }
